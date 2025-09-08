@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -e .
+      - name: Bootstrap NLTK data
+        run: |
+          python scripts/download_nltk.py
+      - name: Run tests
+        run: pytest -q
+
+  legacy-demos:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -e .
+      - name: Bootstrap NLTK data
+        run: |
+          python scripts/download_nltk.py
+      - name: Prepare legacy data
+        run: |
+          mkdir -p data
+          if [ -f data/movies.csv ]; then cp data/movies.csv .; fi
+      - name: Run legacy demos
+        run: |
+          set -e
+          for f in src/nlp_project/legacy/*.py; do
+            echo ">>> Running $f"
+            python "$f" || exit 1
+          done
