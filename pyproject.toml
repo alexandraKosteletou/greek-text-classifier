@@ -1,0 +1,16 @@
+
+[project]
+name = "nlp-project"
+version = "0.1.0"
+description = "Greek text classification with TF-IDF + Linear SVM (FastAPI + CLI)"
+authors = [{name="Your Name"}]
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = []
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"

@@ -1,0 +1,15 @@
+import os
+import pandas as pd
+from fastapi.testclient import TestClient
+from nlp_project.model import TrainConfig, train_and_eval
+from nlp_project.api import app
+
+def test_api_predict_smoke(tmp_path):
+    df=pd.DataFrame({'text':['καλό','κακό','ουδέτερο','πολύ καλό','πολύ κακό'], 'label':['pos','neg','neu','pos','neg']})
+    mf=tmp_path/'model.joblib'
+    _, _ = train_and_eval(df, TrainConfig(ngram_range=(1,2), max_features=1000), model_path=str(mf))
+    os.environ['MODEL_PATH']=str(mf)
+    client=TestClient(app)
+    assert client.get('/health').status_code==200
+    r=client.post('/predict', json={'text':'αυτό ήταν καλό'})
+    assert r.status_code==200 and 'label' in r.json()

@@ -1,0 +1,17 @@
+
+__pycache__/
+*.py[cod]
+*.egg-info/
+.env
+.venv
+venv/
+.env.*
+.envrc
+data/*.csv
+!data/sample.csv
+models/
+artifacts/
+*.joblib
+*.pkl
+.vscode/
+.idea/

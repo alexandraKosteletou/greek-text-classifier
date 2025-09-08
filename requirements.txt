@@ -1,0 +1,13 @@
+fastapi
+uvicorn[standard]
+scikit-learn
+pandas
+numpy
+joblib
+pydantic>=2
+httpx
+pytest
+python-dotenv
+spacy
+nltk
+vaderSentiment
