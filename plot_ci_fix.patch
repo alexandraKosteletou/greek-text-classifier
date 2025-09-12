@@ -1,0 +1,49 @@
+*** a/requirements.txt
+--- b/requirements.txt
+@@
+ nltk
+ vaderSentiment
++matplotlib
+
+*** a/.github/workflows/ci.yml
+--- b/.github/workflows/ci.yml
+@@
+-jobs:
+-  test:
++jobs:
++  test:
++    env:
++      MPLBACKEND: Agg
+@@
+-  legacy-demos:
++  legacy-demos:
++    env:
++      MPLBACKEND: Agg
+
+*** a/src/nlp_project/legacy/frequency.py
+--- b/src/nlp_project/legacy/frequency.py
+@@
+- print(fdist.plot(cumulative=True))
++ # Try plotting if matplotlib is available (headless-safe). Otherwise fallback to text.
++ try:
++     import matplotlib
++     matplotlib.use("Agg")
++     import matplotlib.pyplot as plt  # noqa: F401
++     fdist.plot(cumulative=True)
++ except Exception as e:
++     print("Skipping plot (no matplotlib/headless CI):", e)
++     print("Top 20:", fdist.most_common(20))
+
+*** a/src/nlp_project/legacy/frequency_distribution.py
+--- b/src/nlp_project/legacy/frequency_distribution.py
+@@
+- fdist.plot()
++ # Headless-safe plotting with fallback
++ try:
++     import matplotlib
++     matplotlib.use("Agg")
++     import matplotlib.pyplot as plt  # noqa: F401
++     fdist.plot()
++ except Exception as e:
++     print("Skipping plot (no matplotlib/headless CI):", e)
++     print("Top 20:", fdist.most_common(20))
