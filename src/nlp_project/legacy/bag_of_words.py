@@ -22,9 +22,10 @@ count_vectorizer = CountVectorizer(min_df=7, max_df=20)
 document_term_matrix = count_vectorizer.fit_transform([chunk['text'] for chunk in chunks])
 
 # Extract the vocabulary and display it
-vocabulary = np.array(
-    getattr(count_vectorizer, "get_feature_names_out", count_vectorizer.get_feature_names)()
-)
+try:
+    vocabulary = np.array(count_vectorizer.get_feature_names_out())
+except AttributeError:
+    vocabulary = np.array(count_vectorizer.get_feature_names())
 print("\nVocabulary:\n", vocabulary)
 
 # Generate names for chunks
