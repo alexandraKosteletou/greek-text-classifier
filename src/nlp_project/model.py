@@ -46,7 +46,7 @@ def train_and_eval(df, cfg: TrainConfig, model_path: str | None = None):
     counts = Counter(y)
 
     # stratify μόνο αν "χωράει" για όλες τις κλάσεις, αλλιώς fallback
-    test_size_float = max(0.2, (k / n)  1e-9) if n > 0 else 0.2
+test_size_float = max(0.2, (k / n) + 1e-9) if n > 0 else 0.2
     can_stratify = (
         n >= 2 and all(c >= 2 for c in counts.values())
         and math.ceil(test_size_float * n) >= k
