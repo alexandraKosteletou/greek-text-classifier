@@ -1,10 +1,10 @@
 from __future__ import annotations
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import os
 from .model import load_model
 
-MODEL_PATH=os.getenv('MODEL_PATH','artifacts/model.joblib')
+DEFAULT_MODEL_PATH = "artifacts/model.joblib"
 
 class PredictIn(BaseModel):
     text:str
@@ -13,16 +13,28 @@ class PredictOut(BaseModel):
 
 app=FastAPI(title='Greek Text Classifier API')
 _model=None
+_loaded_path = None
 
 @app.on_event('startup')
 def _load():
-    global _model
-    _model=load_model(MODEL_PATH)
+global _model, _loaded_path
+    path = os.getenv("MODEL_PATH", DEFAULT_MODEL_PATH)
+    _loaded_path = path
+    try:
+        _model = load_model(path)
+    except Exception as e:
+        # Μην ρίχνεις το app· άφησε το /health να δείξει ότι δεν φορτώθηκε
+        print(f"[startup] Failed to load model from {path}: {e}")
+        _model = None
+ 
 
 @app.get('/health')
 def health():
-    return {'status':'ok','model_loaded': _model is not None}
+    return {"status": "ok", "model_loaded": _model is not None, "model_path": _loaded_path}
 
 @app.post('/predict', response_model=PredictOut)
 def predict(inp:PredictIn):
-    return PredictOut(label=_model.predict([inp.text])[0])
+    if _model is None:
+        raise HTTPException(status_code=503, detail="Model not loaded")
+    label = _model.predict([inp.text])[0]  # type: ignore
+    return PredictOut(label=label)
