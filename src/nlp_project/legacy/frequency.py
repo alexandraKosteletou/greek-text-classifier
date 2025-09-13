@@ -12,4 +12,13 @@ print(fdist.N())
 
 print(fdist.most_common(10))
 print(fdist.tabulate())
-print(fdist.plot(cumulative=True))
+
+# Headless-safe plotting with fallback
+ try:
+     import matplotlib
+     matplotlib.use("Agg")
+     import matplotlib.pyplot as plt  # noqa: F401
+     fdist.plot(cumulative=True)
+ except Exception as e:
+     print("Skipping plot (no matplotlib/headless CI):", e)
+     print("Top 20:", fdist.most_common(20))

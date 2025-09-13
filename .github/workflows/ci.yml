@@ -7,6 +7,8 @@ on:
 
 jobs:
   test:
+    env:
+      MPLBACKEND: Agg
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -25,6 +27,8 @@ jobs:
         run: pytest -q
 
   legacy-demos:
+    env:
+      MPLBACKEND: Agg
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
