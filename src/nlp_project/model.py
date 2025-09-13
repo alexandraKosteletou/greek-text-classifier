@@ -27,15 +27,43 @@ def build_pipeline(cfg:TrainConfig)->Pipeline:
     clf=LinearSVC(C=cfg.C)
     return Pipeline([('prep',PreprocessTransformer()),('tfidf',vec),('clf',clf)])
 
-def train_and_eval(df,cfg:TrainConfig,model_path:str|None=None):
+def train_and_eval(df, cfg: TrainConfig, model_path: str | None = None):
     from sklearn.model_selection import train_test_split
-    Xtr,Xv,ytr,yv = train_test_split(df['text'].tolist(), df['label'].tolist(), test_size=0.2, random_state=42, stratify=df['label'])
-    pipe=build_pipeline(cfg)
-    pipe.fit(Xtr,ytr)
-    yhat=pipe.predict(Xv)
-    report=classification_report(yv,yhat,output_dict=False,digits=3)
-    if model_path: joblib.dump(pipe, model_path)
+    from collections import Counter
+    import math
+ 
+    X = df["text"].tolist()
+    y = df["label"].tolist()
+    n = len(y)
+    k = len(set(y))
+    counts = Counter(y)
+ 
+     # Προσπάθησε με stratify, με test_size που να "χωράει" όλες τις κλάσεις στο test
+    test_size_float = max(0.2, (k / n)  1e-9)  # π.χ. για n=5,k=3 ⇒ 0.6 ⇒ ceil(3)
+    can_stratify = all(c >= 2 for c in counts.values()) and math.ceil(test_size_float * n) >= k
+ 
+    try:
+        if can_stratify:
+           X_train, X_val, y_train, y_val = train_test_split(
+                X, y, test_size=test_size_float, random_state=42, stratify=y
+             )
+        else:
+           raise ValueError("Tiny dataset — skip stratify")
+    except ValueError:
+ # Fallback: χωρίς stratify, με τουλάχιστον 1 δείγμα στο test
+       test_size_int = max(1, int(round(0.2 * n)))
+       test_size_int = min(test_size_int, n - 1)
+       X_train, X_val, y_train, y_val = train_test_split(
+       X, y, test_size=test_size_int, random_state=42, stratify=None
+       )
+ 
+    pipe = build_pipeline(cfg)
+    pipe.fit(X_train, y_train)
+    y_pred = pipe.predict(X_val)
+    report = classification_report(y_val, y_pred, output_dict=False, digits=3)
+    if model_path:
+       joblib.dump(pipe, model_path)
     return pipe, report
 
 def load_model(path:str)->Pipeline:
-    return joblib.load(path)
+   return joblib.load(path)
