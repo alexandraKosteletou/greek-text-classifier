@@ -16,8 +16,9 @@ _model=None
 _loaded_path = None
 
 @app.on_event('startup')
-def _load():
-global _model, _loaded_path
+def some_function():
+    global model, loaded_path  # Remove the * and add proper indentation
+    # Your function code here
     path = os.getenv("MODEL_PATH", DEFAULT_MODEL_PATH)
     _loaded_path = path
     try:
