@@ -48,14 +48,22 @@ def health():
         "model_path": loaded_path
     }
 
-@app.post("/predict", response_model=PredictOut)
-async def predict(request: PredictIn):  # Use PredictIn, not PredictRequest!
-    global model
-    if model is None:
-        raise HTTPException(status_code=503, detail="Model not available - please check model loading")
-    
+@app.post("/reload_model")
+async def reload_model():
+    global model, loaded_path
     try:
-        prediction = model.predict([request.text])
-        return PredictOut(label=prediction[0])
+        model_path = os.getenv('MODEL_PATH', DEFAULT_MODEL_PATH)
+        print(f"Reloading model from: {model_path}")
+        
+        if os.path.exists(model_path):
+            model = joblib.load(model_path)
+            loaded_path = model_path
+            return {"status": "success", "model_path": model_path}
+        else:
+            model = None
+            loaded_path = None
+            return {"status": "failed", "error": f"Model not found at {model_path}"}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
+        model = None
+        loaded_path = None
+        return {"status": "failed", "error": str(e)}
