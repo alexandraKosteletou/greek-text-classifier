@@ -16,7 +16,6 @@ def test_api_predict_smoke(tmp_path):
     assert client.get('/health').status_code==200
     r=client.post('/predict', json={'text':'αυτό ήταν καλό'})
     assert r.status_code==200 and 'label' in r.json()
-
-r = client.post('/predict', json={'text':'αυτό ήταν καλό'})
-print(f"Response: {r.status_code} - {r.text}")  # This will show the exact error
-assert r.status_code == 200 and 'label' in r.json()
+    r = client.post('/predict', json={'text':'αυτό ήταν καλό'})
+    print(f"Response: {r.status_code} - {r.text}")  # This will show the exact error
+    assert r.status_code == 200 and 'label' in r.json()
