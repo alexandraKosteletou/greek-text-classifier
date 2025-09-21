@@ -8,7 +8,7 @@ def test_api_predict_smoke(tmp_path):
     # Create model first
     df = pd.DataFrame({...})
     mf = tmp_path/'model.joblib'
-    *, * = train_and_eval(df, TrainConfig(ngram_range=(1,2), max_features=1000), model_path=str(mf))
+    _ = train_and_eval(df, TrainConfig(ngram_range=(1,2), max_features=1000), model_path=str(mf))
     
     # Set env var BEFORE importing app
     os.environ['MODEL_PATH'] = str(mf)
