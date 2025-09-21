@@ -67,3 +67,15 @@ async def reload_model():
         model = None
         loaded_path = None
         return {"status": "failed", "error": str(e)}
+        
+@app.post("/predict", response_model=PredictOut)
+async def predict(request: PredictIn):
+    global model
+    if model is None:
+        raise HTTPException(status_code=503, detail="Model not available - please check model loading")
+    
+    try:
+        prediction = model.predict([request.text])
+        return PredictOut(label=prediction[0])
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
