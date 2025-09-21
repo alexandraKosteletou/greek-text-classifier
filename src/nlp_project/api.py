@@ -16,26 +16,42 @@ _model=None
 _loaded_path = None
 
 @app.on_event('startup')
-def some_function():
-    global model, loaded_path  # Remove the * and add proper indentation
-    # Your function code here
-    path = os.getenv("MODEL_PATH", DEFAULT_MODEL_PATH)
-    _loaded_path = path
+async def load_model_on_startup():
+    global model, loaded_path
     try:
-        _model = load_model(path)
+        model_path = os.getenv('MODEL_PATH', 'artifacts/model.joblib')
+        print(f"Trying to load model from: {model_path}")
+        print(f"File exists: {os.path.exists(model_path)}")
+        
+        if os.path.exists(model_path):
+            model = joblib.load(model_path)
+            loaded_path = model_path
+            print(f"✅ Model loaded successfully")
+        else:
+            print(f"❌ Model file not found")
+            model = None
+            loaded_path = None
     except Exception as e:
-        # Μην ρίχνεις το app· άφησε το /health να δείξει ότι δεν φορτώθηκε
-        print(f"[startup] Failed to load model from {path}: {e}")
-        _model = None
+        print(f"❌ Model loading failed: {e}")
+        model = None
+        loaded_path = None
  
 
 @app.get('/health')
 def health():
     return {"status": "ok", "model_loaded": _model is not None, "model_path": _loaded_path}
 
-@app.post('/predict', response_model=PredictOut)
-def predict(inp:PredictIn):
-    if _model is None:
-        raise HTTPException(status_code=503, detail="Model not loaded")
-    label = _model.predict([inp.text])[0]  # type: ignore
-    return PredictOut(label=label)
+@app.post("/predict")
+async def predict(request: PredictRequest):
+    global model
+    if model is None:
+        raise HTTPException(status_code=503, detail="Model not available - please check model loading")
+    
+    try:
+        prediction = model.predict([request.text])
+        return {"label": prediction[0]}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
+    r = client.post('/predict', json={'text':'αυτό ήταν καλό'})
+    print(f"Debug - Response: {r.status_code} - {r.text}")  # Add this line
+    assert r.status_code == 200 and 'label' in r.json()
