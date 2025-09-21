@@ -25,3 +25,9 @@ def test_api_predict_smoke(tmp_path):
     r = client.post('/predict', json={'text':'αυτό ήταν καλό'})
     print(f"Debug - Response: {r.status_code} - {r.text}")
     assert r.status_code == 200 and 'label' in r.json()
+    
+    # Debug: Check what endpoints are available
+    print(f"Available routes: {[route.path for route in app.routes]}")
+    
+    assert client.get('/health').status_code == 200
+    r = client.post('/predict', json={'text':'αυτό ήταν καλό'})
