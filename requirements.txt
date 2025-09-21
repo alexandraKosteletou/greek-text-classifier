@@ -12,3 +12,5 @@ spacy
 nltk
 vaderSentiment
 matplotlib
+httpx
+pytest-asyncio
